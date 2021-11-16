@@ -36,7 +36,7 @@ vector<Eigen::Vector2d> calcVecLine(Eigen::Vector2d start, Eigen::Vector2d along
     for (double i = zero; i < length; i+= increment) {
         line.push_back(calcLinePoint(start, along, i));
     }
-    line.push_back(calcLinePoint(start, along, length + start));
+    line.push_back(calcLinePoint(start, along, length + zero));
     return line;
 }
 
