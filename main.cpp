@@ -112,17 +112,18 @@ vector<array<double, 2>> rectangularPath(json launch, json pylon1, json pylon2, 
 
 
     //should generate a coordinate every meter
+    int increment = 1; //meters
     vector<Eigen::Vector2d> coordinates;
     vector<Eigen::Vector2d> generated;
-    generated = calcVecLine(vecLaunch, vecLaunchStart, calcVecDistance(vecLaunch, vecBotLeft), 1);
+    generated = calcVecLine(vecLaunch, vecLaunchStart, calcVecDistance(vecLaunch, vecBotLeft), increment);
     coordinates.insert(coordinates.end(), generated.begin(), generated.end());
-    generated = calcVecLine(vecBotLeft, vecP1P2, calcVecDistance(vecBotLeft, vecBotRight), 1);
+    generated = calcVecLine(vecBotLeft, vecP1P2, calcVecDistance(vecBotLeft, vecBotRight), increment);
     coordinates.insert(coordinates.end(), generated.begin(), generated.end());
-    generated = calcVecLine(vecBotRight, vecNormP1P2, calcVecDistance(vecBotRight, vecTopRight), 1);
+    generated = calcVecLine(vecBotRight, vecNormP1P2, calcVecDistance(vecBotRight, vecTopRight), increment);
     coordinates.insert(coordinates.end(), generated.begin(), generated.end());
-    generated = calcVecLine(vecTopRight, vecRevP1P2, calcVecDistance(vecTopRight, vecTopLeft), 1);
+    generated = calcVecLine(vecTopRight, vecRevP1P2, calcVecDistance(vecTopRight, vecTopLeft), increment);
     coordinates.insert(coordinates.end(), generated.begin(), generated.end());
-    generated = calcVecLine(vecTopLeft, vecEndLand, calcVecDistance(vecTopLeft, vecLand), 1);
+    generated = calcVecLine(vecTopLeft, vecEndLand, calcVecDistance(vecTopLeft, vecLand), increment);
     coordinates.insert(coordinates.end(), generated.begin(), generated.end());
 
     //convert vectors to arrays
