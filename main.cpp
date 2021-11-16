@@ -89,7 +89,7 @@ vector<array<double, 2>> rectangularPath(json launch, json pylon1, json pylon2, 
     Eigen::Vector2d vecLaunch( cartLaunch[0], cartLaunch[1]);
     Eigen::Vector2d vecPylon1(cartPylon1[0], cartPylon1[1]);
     Eigen::Vector2d vecPylon2(cartPylon2[0], cartPylon2[1]);
-    Eigen::Vector2d vecLand(cartLaunch[0], cartLaunch[1]);
+    Eigen::Vector2d vecLand(cartMast[0], cartMast[1]);
 
     //key vectors: need unit vectors
     Eigen::Vector2d vecP1P2 = vecPylon2 - vecPylon1;
