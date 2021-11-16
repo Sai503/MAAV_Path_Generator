@@ -17,12 +17,13 @@ json parseItem(json item) {
     return parsed;
 };
 
-json generateItem(json waypoint, json pylon, int sequence) {
-    pylon["Altitude"] = waypoint["Altitude"];
+json generateItem(array<double,2> waypoint, json pylon, int sequence) {
+    //ignoring altitude - leave as default
+    //pylon["Altitude"] = waypoint["Altitude"];
     pylon["doJumpId"] = sequence;
-    pylon["params"][4] = waypoint["Latitude"];
-    pylon["params"][5] = waypoint["Longitude"];
-    pylon["params"][6] = waypoint["Altitude"];
+    pylon["params"][4] = waypoint[0];
+    pylon["params"][5] = waypoint[1];
+   // pylon["params"][6] = waypoint["Altitude"];
     return pylon;
 }
 
@@ -61,7 +62,7 @@ vector<array<double,2>> cartToWGS84(vector<array<double,2>> cartesian, array<dou
     return WGS84;
 }
 
-json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margin = 5) {
+vector<array<double, 2>> rectangularPath(json launch, json pylon1, json pylon2, json mast, int margin = 5) {
     //units in meters, lat/long = coordinates
     //can't just treat it like x and y b/c the earth is round!!
     //not sure if cartesian coordinates are also in meters... functions relative to reference
@@ -130,11 +131,7 @@ json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margi
     //todo: find documentation on QGroundControl's coordinate system
     vector<array<double, 2>> wgs84Arr = cartToWGS84(coordinateArr, roundLaunch);
     //convert back to waypoints
-    json waypoints;
-
-    //return new path
-    return waypoints;
-
+    return wgs84Arr;
 }
 
 int main(int argc, char *argv[]) {
@@ -182,7 +179,17 @@ int main(int argc, char *argv[]) {
 
     if (pathType == "Rectangular") {
         //looks like cartesian coordinates are in meters
-        plan["mission"]["items"] = rectangularPath(launch, pylon1, pylon2, mast);
+        vector<array<double, 2>> waypoints = rectangularPath(launch, pylon1, pylon2, mast);
+        json launchOriginal = plan["mission"]["items"][0];
+        json mastOriginal = plan["mission"]["items"][3];
+        json pylonSample = plan["mission"]["items"][1];
+        plan["mission"]["items"] = json::array();
+        plan["mission"]["items"].push_back(launchOriginal);
+        for (int i = 0; i < waypoints.size(); i++) {
+            plan["mission"]["items"].push_back(generateItem(waypoints[i], pylonSample, i+1));
+        }
+        mastOriginal["doJumpId"] = waypoints.size() + 1;
+        plan["mission"]["items"].push_back(mastOriginal);
     } else if (pathType == "Circular") {
         cout << "Circular paths are currently unsupported" << endl;
         return 1;
