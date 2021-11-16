@@ -26,6 +26,20 @@ json generateItem(json waypoint, json pylon, int sequence) {
     return pylon;
 }
 
+Eigen::Vector2d calcLinePoint(Eigen::Vector2d start, Eigen::Vector2d along, double t) {
+    Eigen::Vector2d result = along * t + start;
+    return result;
+}
+
+vector<Eigen::Vector2d> calcVecLine(Eigen::Vector2d start, Eigen::Vector2d along, double length, double increment, double zero = 0.0) {
+    vector<Eigen::Vector2d> line; //todo declare on heap
+    for (double i = zero; i < length; i+= increment) {
+        line.push_back(calcLinePoint(start, along, i));
+    }
+    line.push_back(calcLinePoint(start, along, length + start));
+    return line;
+}
+
 json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margin = 5) {
     //units in meters, lat/long = coordinates
     //can't just treat it like x and y b/c the earth is round!!
@@ -49,11 +63,33 @@ json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margi
     cout << "cartpylon1: " << cartPylon1[0] << cartPylon1[1] << endl;
     //should be able to do normal math on cartesian coordinates
     //using vector equations to easily get points along the line
+    //can't assume orientation will match N/S/E/W
+    Eigen::Vector2d vecLaunch( cartLaunch[0], cartLaunch[1]);
+    Eigen::Vector2d vecPylon1(cartPylon1[0], cartPylon1[1]);
+    Eigen::Vector2d vecPylon2(cartPylon2[0], cartPylon2[1]);
+    Eigen::Vector2d vecLand(cartLaunch[0], cartLaunch[1]);
+
+    //key vectors: need unit vectors
+    Eigen::Vector2d vecP1P2();
+    Eigen::Vector2d vecRevP1P2();
+    Eigen::Vector2d vecNormP1P2();
+    Eigen::Vector2d vecRevNormP1P2();
+
+    //vectors to points: actual size
+    Eigen::Vector2d vecBotLeft();
+    Eigen::Vector2d vecBotRight();
+    Eigen::Vector2d vecTopLeft();
+    Eigen::Vector2d vecTopRight();
+
+    //should generate a coordinate every meter
+
+
+    //convert vectors to arrays
 
     //convert back to wgs84 coordinates (system used by gps)
     //todo: find documentation on QGroundControl's coordinate system
-    Eigen::Vector2d vecLaunch(cartLaunch[0], cartLaunch[1]);
-    //Eigen::Vector2d vecLaunch(cartLaunch[0], cartLaunch[1]);
+
+    //convert back to waypoints
 
     //return new path
     json j1;
@@ -112,6 +148,7 @@ int main(int argc, char *argv[]) {
         return 1;
     } else if (pathType == "Spline") {
         cout << "Spline paths are currently unsupported" << endl;
+        //using space curves?
         return 1;
     } else {
         cout << "[type] must be: Rectangular, Circular, or Spline" << endl;
