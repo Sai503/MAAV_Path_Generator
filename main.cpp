@@ -53,7 +53,7 @@ json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margi
     //convert back to wgs84 coordinates (system used by gps)
     //todo: find documentation on QGroundControl's coordinate system
     Eigen::Vector2d vecLaunch(cartLaunch[0], cartLaunch[1]);
-    Eigen::Vector2d vecLaunch(cartLaunch[0], cartLaunch[1]);
+    //Eigen::Vector2d vecLaunch(cartLaunch[0], cartLaunch[1]);
 
     //return new path
     json j1;
