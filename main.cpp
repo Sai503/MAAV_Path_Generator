@@ -33,11 +33,32 @@ Eigen::Vector2d calcLinePoint(Eigen::Vector2d start, Eigen::Vector2d along, doub
 
 vector<Eigen::Vector2d> calcVecLine(Eigen::Vector2d start, Eigen::Vector2d along, double length, double increment, double zero = 0.0) {
     vector<Eigen::Vector2d> line; //todo declare on heap
-    for (double i = zero; i < length; i+= increment) {
-        line.push_back(calcLinePoint(start, along, i));
+    for (double i = zero + i; i < length; i+= increment) {
+        line.push_back(calcLinePoint(start, along, i)); //ignores start point
     }
     line.push_back(calcLinePoint(start, along, length + zero));
     return line;
+}
+
+double calcVecDistance(Eigen::Vector2d start, Eigen::Vector2d end) {
+    Eigen::Vector2d tmp = start - end;
+    return tmp.norm();
+}
+
+vector<array<double, 2>> vecToArray(vector<Eigen::Vector2d> coordinates) {
+    vector<array<double,2>> converted;
+    for(int i = 0; i < coordinates.size(); i++) {
+       converted.push_back({coordinates[i].x(), coordinates[i].y()});
+    }
+    return converted;
+}
+
+vector<array<double,2>> cartToWGS84(vector<array<double,2>> cartesian, array<double, 2> reference) {
+    vector<array<double,2>> WGS84;
+    for(int i = 0; i < cartesian.size(); i++) {
+        WGS84.push_back(wgs84::fromCartesian(reference, cartesian[i]));
+    }
+    return WGS84;
 }
 
 json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margin = 5) {
@@ -70,30 +91,49 @@ json rectangularPath(json launch, json pylon1, json pylon2, json mast, int margi
     Eigen::Vector2d vecLand(cartLaunch[0], cartLaunch[1]);
 
     //key vectors: need unit vectors
-    Eigen::Vector2d vecP1P2();
-    Eigen::Vector2d vecRevP1P2();
-    Eigen::Vector2d vecNormP1P2();
-    Eigen::Vector2d vecRevNormP1P2();
+    Eigen::Vector2d vecP1P2 = vecPylon2 - vecPylon1;
+    vecP1P2 = vecP1P2 / vecP1P2.norm();
+    Eigen::Vector2d vecRevP1P2 = vecP1P2 * -1;
+    Eigen::Vector2d vecNormP1P2(-vecP1P2.x(), vecP1P2.y());
+    Eigen::Vector2d vecRevNormP1P2 = vecNormP1P2 * -1;
 
     //vectors to points: actual size
-    Eigen::Vector2d vecBotLeft();
-    Eigen::Vector2d vecBotRight();
-    Eigen::Vector2d vecTopLeft();
-    Eigen::Vector2d vecTopRight();
+    Eigen::Vector2d vecBotLeft = vecPylon1 + vecRevP1P2 + vecRevNormP1P2;
+    Eigen::Vector2d vecBotRight = vecPylon2 + vecP1P2 + vecRevNormP1P2;
+    Eigen::Vector2d vecTopLeft = vecPylon1 + vecRevP1P2 + vecNormP1P2;
+    Eigen::Vector2d vecTopRight = vecPylon2 + vecP1P2 + vecNormP1P2;
+
+    //start and end: unit vectors
+    Eigen::Vector2d vecLaunchStart = vecBotLeft - vecLaunch;
+    vecLaunchStart = vecLaunchStart / vecLaunchStart.norm();
+    Eigen::Vector2d vecEndLand = vecLand - vecTopLeft;
+    vecEndLand = vecEndLand / vecEndLand.norm();
+
 
     //should generate a coordinate every meter
-
+    vector<Eigen::Vector2d> coordinates;
+    vector<Eigen::Vector2d> generated;
+    generated = calcVecLine(vecLaunch, vecLaunchStart, calcVecDistance(vecLaunch, vecBotLeft), 1);
+    coordinates.insert(coordinates.end(), generated.begin(), generated.end());
+    generated = calcVecLine(vecBotLeft, vecP1P2, calcVecDistance(vecBotLeft, vecBotRight), 1);
+    coordinates.insert(coordinates.end(), generated.begin(), generated.end());
+    generated = calcVecLine(vecBotRight, vecNormP1P2, calcVecDistance(vecBotRight, vecTopRight), 1);
+    coordinates.insert(coordinates.end(), generated.begin(), generated.end());
+    generated = calcVecLine(vecTopRight, vecRevP1P2, calcVecDistance(vecTopRight, vecTopLeft), 1);
+    coordinates.insert(coordinates.end(), generated.begin(), generated.end());
+    generated = calcVecLine(vecTopLeft, vecEndLand, calcVecDistance(vecTopLeft, vecLand), 1);
+    coordinates.insert(coordinates.end(), generated.begin(), generated.end());
 
     //convert vectors to arrays
-
+    vector<array<double, 2>> coordinateArr = vecToArray(coordinates);
     //convert back to wgs84 coordinates (system used by gps)
     //todo: find documentation on QGroundControl's coordinate system
-
+    vector<array<double, 2>> wgs84Arr = cartToWGS84(coordinateArr, roundLaunch);
     //convert back to waypoints
+    json waypoints;
 
     //return new path
-    json j1;
-    return j1;
+    return waypoints;
 
 }
 
